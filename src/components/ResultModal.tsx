@@ -1,5 +1,7 @@
 'use client';
 
+import { ja } from '@/utils/i18n';
+
 interface ResultModalProps {
     result: 'win' | 'lose';
     stageId: number;
@@ -13,13 +15,13 @@ interface ResultModalProps {
 export default function ResultModal({
     result,
     stageId,
-    stageName,
     onRetry,
     onNextStage,
     onMenu,
     hasNextStage,
 }: ResultModalProps) {
     const isWin = result === 'win';
+    const stageInfo = ja.stages[stageId as keyof typeof ja.stages];
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -45,19 +47,17 @@ export default function ResultModal({
                 <h2
                     className={`text-4xl font-bold mb-2 ${isWin ? 'text-green-400' : 'text-red-400'}`}
                 >
-                    {isWin ? 'VICTORY!' : 'DEFEATED'}
+                    {isWin ? ja.victory : ja.defeat}
                 </h2>
 
                 {/* Stage info */}
                 <p className="text-slate-300 mb-6">
-                    Stage {stageId}: {stageName}
+                    {ja.stage} {stageId}: {stageInfo?.name}
                 </p>
 
                 {/* Message */}
                 <p className="text-slate-400 mb-8">
-                    {isWin
-                        ? 'Great job! You destroyed the enemy base!'
-                        : 'Your base was destroyed. Try again!'}
+                    {isWin ? ja.victoryMessage : ja.defeatMessage}
                 </p>
 
                 {/* Buttons */}
@@ -67,7 +67,7 @@ export default function ResultModal({
                             onClick={onNextStage}
                             className="w-full py-3 px-6 bg-green-600 hover:bg-green-500 rounded-lg text-white font-bold text-lg transition-colors"
                         >
-                            Next Stage →
+                            {ja.nextStage} →
                         </button>
                     )}
 
@@ -80,14 +80,14 @@ export default function ResultModal({
                                 : 'bg-blue-600 hover:bg-blue-500'}
             `}
                     >
-                        {isWin ? 'Play Again' : 'Retry'}
+                        {isWin ? ja.playAgain : ja.retry}
                     </button>
 
                     <button
                         onClick={onMenu}
                         className="w-full py-3 px-6 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-bold transition-colors"
                     >
-                        Back to Menu
+                        {ja.backToMenu}
                     </button>
                 </div>
             </div>

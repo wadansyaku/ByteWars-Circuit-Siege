@@ -9,15 +9,17 @@ import { GameState } from '@/game/engine/GameState';
 import { GameLoop } from '@/game/engine/GameLoop';
 import { GameStateSnapshot } from '@/game/types';
 import { getStageById, getNextStage, STAGES } from '@/game/data/stages';
-import { unlockStage, updateStats } from '@/utils/storage';
+import { unlockStage } from '@/utils/storage';
 import { GAME_CONFIG } from '@/game/data/config';
+import { logGameStart, logGameEnd, logUnitDeploy } from '@/utils/analytics';
+import { ja } from '@/utils/i18n';
 
 // Dynamic import for GameCanvas to avoid SSR issues
 const GameCanvas = dynamic(() => import('@/components/GameCanvas'), {
     ssr: false,
     loading: () => (
         <div className="w-full aspect-[3/1] bg-slate-900 rounded-lg flex items-center justify-center">
-            <div className="text-white text-xl">Loading game...</div>
+            <div className="text-white text-xl">読み込み中...</div>
         </div>
     ),
 });
@@ -30,6 +32,7 @@ function PlayPageContent() {
 
     const gameStateRef = useRef<GameState | null>(null);
     const gameLoopRef = useRef<GameLoop | null>(null);
+    const gameStartTimeRef = useRef<number>(0);
 
     const [snapshot, setSnapshot] = useState<GameStateSnapshot>({
         playerBaseHp: stageData.playerBaseHp,
@@ -49,35 +52,47 @@ function PlayPageContent() {
     const [showResult, setShowResult] = useState(false);
     const [gameResult, setGameResult] = useState<'win' | 'lose' | null>(null);
 
+    // Log game start
+    useEffect(() => {
+        logGameStart(stageId);
+        gameStartTimeRef.current = Date.now();
+    }, [stageId]);
+
     // Handle state updates from game
     const handleStateChange = useCallback((newSnapshot: GameStateSnapshot) => {
         setSnapshot(newSnapshot);
     }, []);
 
     // Handle game end
-    const handleGameEnd = useCallback((result: 'win' | 'lose') => {
-        setGameResult(result);
-        setShowResult(true);
+    const handleGameEnd = useCallback(
+        (result: 'win' | 'lose') => {
+            setGameResult(result);
+            setShowResult(true);
 
-        // Update stats
-        updateStats({
-            gamesPlayed: 1,
-            gamesWon: result === 'win' ? 1 : 0,
-        });
+            // Calculate game duration in seconds
+            const duration = Math.floor((Date.now() - gameStartTimeRef.current) / 1000);
 
-        // Unlock next stage if won
-        if (result === 'win') {
-            const nextStage = getNextStage(stageId);
-            if (nextStage) {
-                unlockStage(nextStage.id);
+            // Log analytics
+            logGameEnd(stageId, result, duration);
+
+            // Unlock next stage if won
+            if (result === 'win') {
+                const nextStage = getNextStage(stageId);
+                if (nextStage) {
+                    unlockStage(nextStage.id);
+                }
             }
-        }
-    }, [stageId]);
+        },
+        [stageId]
+    );
 
-    // Unit spawn handler
+    // Unit spawn handler with analytics
     const handleSpawnUnit = useCallback((unitId: string) => {
         if (gameStateRef.current) {
-            gameStateRef.current.spawnPlayerUnit(unitId);
+            const spawned = gameStateRef.current.spawnPlayerUnit(unitId);
+            if (spawned) {
+                logUnitDeploy(unitId);
+            }
         }
     }, []);
 
@@ -101,12 +116,14 @@ function PlayPageContent() {
     const handleRetry = useCallback(() => {
         setShowResult(false);
         setGameResult(null);
+        gameStartTimeRef.current = Date.now();
+        logGameStart(stageId);
 
         if (gameStateRef.current && gameLoopRef.current) {
             gameStateRef.current.reset();
             gameLoopRef.current.start();
         }
-    }, []);
+    }, [stageId]);
 
     // Next stage handler
     const handleNextStage = useCallback(() => {
@@ -158,7 +175,7 @@ function PlayPageContent() {
                     onClick={handleMenu}
                     className="text-slate-400 hover:text-white transition-colors flex items-center gap-2"
                 >
-                    ← Back to Menu
+                    ← {ja.backToMenu}
                 </button>
             </div>
 
@@ -199,7 +216,7 @@ function PlayPageContent() {
 
             {/* Keyboard hints */}
             <div className="hidden sm:block fixed bottom-4 left-4 text-slate-600 text-xs">
-                <div>Keys 1-6: Deploy units | P: Pause</div>
+                <div>キー 1-6: ユニット召喚 | P: 一時停止</div>
             </div>
         </main>
     );
@@ -207,11 +224,13 @@ function PlayPageContent() {
 
 export default function PlayPage() {
     return (
-        <Suspense fallback={
-            <main className="min-h-screen flex items-center justify-center">
-                <div className="text-white text-xl">Loading...</div>
-            </main>
-        }>
+        <Suspense
+            fallback={
+                <main className="min-h-screen flex items-center justify-center">
+                    <div className="text-white text-xl">読み込み中...</div>
+                </main>
+            }
+        >
             <PlayPageContent />
         </Suspense>
     );

@@ -2,6 +2,7 @@
 
 import { GameStateSnapshot } from '@/game/types';
 import { PLAYER_UNITS } from '@/game/data/units';
+import { ja } from '@/utils/i18n';
 
 interface UnitButtonProps {
     unitId: string;
@@ -22,7 +23,6 @@ function UnitButton({
     name,
     icon,
     cost,
-    color,
     cooldown,
     cooldownRemaining,
     energy,
@@ -34,6 +34,9 @@ function UnitButton({
     const canAfford = energy >= cost;
     const isReady = cooldownRemaining <= 0;
     const isDisabled = disabled || !canAfford || !isReady;
+
+    // Get Japanese name
+    const jaName = ja.units[unitId as keyof typeof ja.units]?.name || name;
 
     return (
         <button
@@ -48,9 +51,6 @@ function UnitButton({
                     : 'bg-slate-800 hover:bg-slate-700 hover:scale-105 active:scale-95 cursor-pointer'}
         border-2 ${isDisabled ? 'border-slate-600' : 'border-slate-500'}
       `}
-            style={{
-                boxShadow: isDisabled ? 'none' : `0 0 10px ${color}40`,
-            }}
         >
             {/* Cooldown overlay */}
             {!isReady && (
@@ -67,7 +67,7 @@ function UnitButton({
 
             {/* Name */}
             <span className="text-[10px] sm:text-xs text-slate-300 mt-1 truncate w-full text-center px-1">
-                {name}
+                {jaName}
             </span>
 
             {/* Cost */}
@@ -85,7 +85,7 @@ function UnitButton({
             {/* Cooldown timer */}
             {!isReady && (
                 <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg">
-                    {Math.ceil(cooldownRemaining / 1000)}s
+                    {Math.ceil(cooldownRemaining / 1000)}秒
                 </span>
             )}
         </button>
@@ -104,7 +104,6 @@ interface HUDProps {
 export default function HUD({
     snapshot,
     stageId,
-    stageName,
     onSpawnUnit,
     onPause,
     onResume,
@@ -126,13 +125,15 @@ export default function HUD({
     const enemyHpPercent = (enemyBaseHp / enemyBaseMaxHp) * 100;
     const energyPercent = (energy / maxEnergy) * 100;
 
+    const stageInfo = ja.stages[stageId as keyof typeof ja.stages];
+
     return (
         <div className="w-full space-y-4">
             {/* Top bar - Stage info and HP */}
             <div className="flex justify-between items-center gap-4 flex-wrap">
                 {/* Player HP */}
                 <div className="flex-1 min-w-[200px]">
-                    <div className="text-sm text-green-400 mb-1">Your Base</div>
+                    <div className="text-sm text-green-400 mb-1">{ja.yourBase}</div>
                     <div className="h-4 bg-slate-700 rounded-full overflow-hidden">
                         <div
                             className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-300"
@@ -146,16 +147,16 @@ export default function HUD({
 
                 {/* Stage info */}
                 <div className="text-center">
-                    <div className="text-sm text-slate-400">Stage {stageId}</div>
-                    <div className="text-lg font-bold text-white">{stageName}</div>
+                    <div className="text-sm text-slate-400">{ja.stage} {stageId}</div>
+                    <div className="text-lg font-bold text-white">{stageInfo?.name}</div>
                     <div className="text-xs text-slate-400">
-                        Wave {Math.min(currentWave + 1, totalWaves)} / {totalWaves}
+                        {ja.wave} {Math.min(currentWave + 1, totalWaves)} / {totalWaves}
                     </div>
                 </div>
 
                 {/* Enemy HP */}
                 <div className="flex-1 min-w-[200px]">
-                    <div className="text-sm text-red-400 mb-1 text-right">Enemy Base</div>
+                    <div className="text-sm text-red-400 mb-1 text-right">{ja.enemyBase}</div>
                     <div className="h-4 bg-slate-700 rounded-full overflow-hidden">
                         <div
                             className="h-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-300 ml-auto"
@@ -180,7 +181,7 @@ export default function HUD({
                             />
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <span className="text-white font-bold text-sm drop-shadow-lg">
-                                    {energy} / {maxEnergy}
+                                    {ja.energy} {energy} / {maxEnergy}
                                 </span>
                             </div>
                         </div>
@@ -191,7 +192,7 @@ export default function HUD({
                         onClick={isPaused ? onResume : onPause}
                         className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-bold transition-colors"
                     >
-                        {isPaused ? '▶️ Resume' : '⏸️ Pause'}
+                        {isPaused ? `▶️ ${ja.resume}` : `⏸️ ${ja.pause}`}
                     </button>
                 </div>
             </div>
@@ -219,7 +220,7 @@ export default function HUD({
             {/* Pause overlay */}
             {isPaused && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 pointer-events-none">
-                    <div className="text-4xl font-bold text-white animate-pulse">PAUSED</div>
+                    <div className="text-4xl font-bold text-white animate-pulse">{ja.paused}</div>
                 </div>
             )}
         </div>
