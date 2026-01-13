@@ -3,6 +3,9 @@ import { StageData, GameStateSnapshot } from '../types';
 import { GAME_CONFIG } from '../data/config';
 import { PLAYER_UNITS, getUnitById } from '../data/units';
 import { selectRandomEnemy } from '../data/enemies';
+import { ParticleSystem } from '../renderer/ParticleSystem';
+import { FloatingTextManager } from '../renderer/FloatingText';
+import { AudioManager } from '../audio/AudioManager';
 
 export class GameState {
     // Bases
@@ -32,6 +35,11 @@ export class GameState {
     public spawnAccumulator: number = 0;
     public enemiesSpawnedThisWave: number = 0;
 
+    // Visual systems
+    public particles: ParticleSystem;
+    public floatingTexts: FloatingTextManager;
+    public screenShake: number = 0;
+
     // Timing
     public frameCount: number = 0;
     public lastFrameTime: number = 0;
@@ -42,6 +50,9 @@ export class GameState {
         this.enemyBase = new Base('enemy', stageData.enemyBaseHp);
         this.energy = GAME_CONFIG.initialEnergy;
         this.maxEnergy = GAME_CONFIG.maxEnergy;
+
+        this.particles = new ParticleSystem();
+        this.floatingTexts = new FloatingTextManager();
 
         // Initialize cooldowns for all units
         PLAYER_UNITS.forEach((unit) => {
@@ -62,6 +73,9 @@ export class GameState {
         this.frameCount = 0;
         this.result = 'ongoing';
         this.isPaused = false;
+        this.particles = new ParticleSystem();
+        this.floatingTexts = new FloatingTextManager();
+        this.screenShake = 0;
 
         PLAYER_UNITS.forEach((unit) => {
             this.cooldowns.set(unit.id, 0);
@@ -109,6 +123,7 @@ export class GameState {
         const unit = new Unit(unitStats, 'player', GAME_CONFIG.playerBaseX + GAME_CONFIG.baseWidth + 10);
         this.playerUnits.push(unit);
 
+        AudioManager.getInstance().playSe('spawn');
         return true;
     }
 
@@ -172,6 +187,13 @@ export class GameState {
         // Update hit flash timers
         this.updateHitFlash();
 
+        // Update visual systems
+        this.particles.update(deltaTime);
+        this.floatingTexts.update(deltaTime);
+        if (this.screenShake > 0) {
+            this.screenShake = Math.max(0, this.screenShake - deltaTime / 16);
+        }
+
         // Check win/lose conditions
         this.checkGameOver();
     }
@@ -232,7 +254,12 @@ export class GameState {
             } else if (baseDistance <= attacker.range && !targetUnit) {
                 attacker.isAttacking = true;
                 if (attacker.canAttack()) {
-                    enemyBase.takeDamage(attacker.attack);
+                    const damage = attacker.attack;
+                    enemyBase.takeDamage(damage);
+                    this.screenShake = 5; // Shake screen on base hit
+                    this.particles.add(enemyBase.centerX, GAME_CONFIG.canvasHeight - 60, '#EF4444', 5, 'spark');
+                    this.floatingTexts.add(enemyBase.centerX, GAME_CONFIG.canvasHeight - 100, `-${damage}`, '#EF4444', 20);
+                    AudioManager.getInstance().playSe('explosion');
                     attacker.startAttack();
                 }
             } else {
@@ -248,13 +275,27 @@ export class GameState {
             const enemies = attacker.faction === 'player' ? this.enemyUnits : this.playerUnits;
             enemies.forEach((enemy) => {
                 if (Math.abs(enemy.position.x - target.position.x) <= attacker.aoeRadius!) {
-                    enemy.takeDamage(attacker.attack);
+                    this.dealDamage(enemy, attacker.attack);
                 }
             });
         } else {
-            target.takeDamage(attacker.attack);
+            this.dealDamage(target, attacker.attack);
         }
         attacker.startAttack();
+    }
+
+    private dealDamage(target: Unit, amount: number): void {
+        target.takeDamage(amount);
+
+        // Visual effects
+        this.particles.add(target.position.x, target.position.y - 20, target.color, 3, 'spark');
+        this.floatingTexts.add(target.position.x, target.position.y - 40, `-${amount}`, '#FFFFFF', 16);
+        AudioManager.getInstance().playSe('hit');
+
+        if (!target.isAlive) {
+            this.particles.add(target.position.x, target.position.y - 20, target.color, 10, 'explosion');
+            AudioManager.getInstance().playSe('explosion');
+        }
     }
 
     private updateHitFlash(): void {

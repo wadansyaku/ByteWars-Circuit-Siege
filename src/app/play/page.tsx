@@ -13,6 +13,7 @@ import { unlockStage } from '@/utils/storage';
 import { GAME_CONFIG } from '@/game/data/config';
 import { logGameStart, logGameEnd, logUnitDeploy } from '@/utils/analytics';
 import { ja } from '@/utils/i18n';
+import { AudioManager } from '@/game/audio/AudioManager';
 
 // Dynamic import for GameCanvas to avoid SSR issues
 const GameCanvas = dynamic(() => import('@/components/GameCanvas'), {
@@ -52,10 +53,12 @@ function PlayPageContent() {
     const [showResult, setShowResult] = useState(false);
     const [gameResult, setGameResult] = useState<'win' | 'lose' | null>(null);
 
-    // Log game start
+    // Log game start and init audio
     useEffect(() => {
         logGameStart(stageId);
         gameStartTimeRef.current = Date.now();
+        // Initialize audio context
+        AudioManager.getInstance().init();
     }, [stageId]);
 
     // Handle state updates from game

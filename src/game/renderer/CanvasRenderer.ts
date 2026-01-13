@@ -25,6 +25,7 @@ export class CanvasRenderer {
         this.canvas.height = rect.height * this.dpr;
 
         this.ctx.scale(this.dpr * this.scale, this.dpr * this.scale);
+        this.ctx.textBaseline = 'middle';
     }
 
     resize(): void {
@@ -39,6 +40,14 @@ export class CanvasRenderer {
         ctx.fillStyle = COLORS.background;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
+        // Apply screen shake
+        ctx.save();
+        if (gameState.screenShake > 0) {
+            const shakeX = (Math.random() - 0.5) * gameState.screenShake * 2;
+            const shakeY = (Math.random() - 0.5) * gameState.screenShake * 2;
+            ctx.translate(shakeX, shakeY);
+        }
+
         // Draw background
         this.drawBackground(gameState.stageData.background);
 
@@ -52,6 +61,29 @@ export class CanvasRenderer {
         // Draw units
         gameState.playerUnits.forEach((unit) => this.drawUnit(unit));
         gameState.enemyUnits.forEach((unit) => this.drawUnit(unit));
+
+        // Draw particles
+        gameState.particles.particles.forEach((p) => {
+            ctx.globalAlpha = p.life / p.maxLife;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        // Draw floating text
+        ctx.textAlign = 'center';
+        gameState.floatingTexts.texts.forEach((t) => {
+            ctx.globalAlpha = t.life / t.maxLife;
+            ctx.fillStyle = t.color;
+            ctx.font = `bold ${t.size}px ${FONT.family}`;
+            ctx.fillText(t.text, t.x, t.y);
+        });
+        ctx.globalAlpha = 1.0;
+
+        // Restore context from screen shake
+        ctx.restore();
     }
 
     private drawBackground(gradient: string): void {

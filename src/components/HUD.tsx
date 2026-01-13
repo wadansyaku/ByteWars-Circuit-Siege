@@ -3,6 +3,8 @@
 import { GameStateSnapshot } from '@/game/types';
 import { PLAYER_UNITS } from '@/game/data/units';
 import { ja } from '@/utils/i18n';
+import { AudioManager } from '@/game/audio/AudioManager';
+import { useState, useCallback } from 'react';
 
 interface UnitButtonProps {
     unitId: string;
@@ -127,6 +129,18 @@ export default function HUD({
 
     const stageInfo = ja.stages[stageId as keyof typeof ja.stages];
 
+    // Local state for mute toggle (mirroring AudioManager state)
+    const [isMuted, setIsMuted] = useState(false);
+
+    const toggleMute = useCallback(() => {
+        const muted = AudioManager.getInstance().toggleMute();
+        setIsMuted(muted);
+        // Play test sound if unmuting
+        if (!muted) {
+            AudioManager.getInstance().playSe('button');
+        }
+    }, []);
+
     return (
         <div className="w-full space-y-4">
             {/* Top bar - Stage info and HP */}
@@ -193,6 +207,15 @@ export default function HUD({
                         className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-bold transition-colors"
                     >
                         {isPaused ? `▶️ ${ja.resume}` : `⏸️ ${ja.pause}`}
+                    </button>
+
+                    {/* Mute button */}
+                    <button
+                        onClick={toggleMute}
+                        className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-bold transition-colors"
+                        title={isMuted ? 'Unmute' : 'Mute'}
+                    >
+                        {isMuted ? '🔇' : '🔊'}
                     </button>
                 </div>
             </div>
