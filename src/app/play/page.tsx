@@ -52,6 +52,7 @@ function PlayPageContent() {
 
     const [showResult, setShowResult] = useState(false);
     const [gameResult, setGameResult] = useState<'win' | 'lose' | null>(null);
+    const [gameDuration, setGameDuration] = useState<number>(0);
 
     // Log game start and init audio
     useEffect(() => {
@@ -74,6 +75,7 @@ function PlayPageContent() {
 
             // Calculate game duration in seconds
             const duration = Math.floor((Date.now() - gameStartTimeRef.current) / 1000);
+            setGameDuration(duration);
 
             // Log analytics
             logGameEnd(stageId, result, duration);
@@ -211,6 +213,7 @@ function PlayPageContent() {
                     result={gameResult}
                     stageId={stageId}
                     stageName={stageData.name}
+                    score={gameDuration}
                     onRetry={handleRetry}
                     onNextStage={handleNextStage}
                     onMenu={handleMenu}

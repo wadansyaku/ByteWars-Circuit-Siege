@@ -12,6 +12,16 @@ export const metadata: Metadata = {
   description: 'A 2D horizontal scrolling base defense game. Deploy units to destroy the enemy base!',
   keywords: ['game', 'browser game', 'tower defense', 'base defense', 'strategy'],
   authors: [{ name: 'ByteWars Team' }],
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ByteWars',
+  },
 };
 
 export const viewport: Viewport = {
@@ -19,6 +29,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#0f172a',
 };
 
 export default function RootLayout({

@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { ja } from '@/utils/i18n';
+import { LeaderboardModal } from './LeaderboardModal';
 
 interface ResultModalProps {
     result: 'win' | 'lose';
     stageId: number;
     stageName: string;
+    score?: number; // Game completion time in seconds
     onRetry: () => void;
     onNextStage: () => void;
     onMenu: () => void;
@@ -15,6 +18,7 @@ interface ResultModalProps {
 export default function ResultModal({
     result,
     stageId,
+    score,
     onRetry,
     onNextStage,
     onMenu,
@@ -22,6 +26,7 @@ export default function ResultModal({
 }: ResultModalProps) {
     const isWin = result === 'win';
     const stageInfo = ja.stages[stageId as keyof typeof ja.stages];
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -55,6 +60,13 @@ export default function ResultModal({
                     {ja.stage} {stageId}: {stageInfo?.name}
                 </p>
 
+                {/* Score info */}
+                {isWin && score && (
+                    <p className="text-emerald-400 font-bold text-xl mb-4">
+                        Clear Time: {score}s
+                    </p>
+                )}
+
                 {/* Message */}
                 <p className="text-slate-400 mb-8">
                     {isWin ? ja.victoryMessage : ja.defeatMessage}
@@ -62,6 +74,15 @@ export default function ResultModal({
 
                 {/* Buttons */}
                 <div className="flex flex-col gap-3">
+                    {isWin && (
+                        <button
+                            onClick={() => setShowLeaderboard(true)}
+                            className="w-full py-3 px-6 bg-amber-600 hover:bg-amber-500 rounded-lg text-white font-bold text-lg transition-colors flex justify-center items-center gap-2"
+                        >
+                            <span>🏆</span> Ranking
+                        </button>
+                    )}
+
                     {isWin && hasNextStage && (
                         <button
                             onClick={onNextStage}
@@ -91,6 +112,14 @@ export default function ResultModal({
                     </button>
                 </div>
             </div>
+
+            {/* Leaderboard Modal */}
+            <LeaderboardModal
+                isOpen={showLeaderboard}
+                onClose={() => setShowLeaderboard(false)}
+                stageId={stageId}
+                playerScore={isWin ? score : undefined}
+            />
         </div>
     );
 }
