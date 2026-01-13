@@ -136,7 +136,34 @@ export class GameState {
             return;
         }
 
-        const enemyStats = selectRandomEnemy(this.stageData.enemyTypes);
+        let enemyStats;
+
+        // Boss Logic: If last wave and first enemy of the wave, try to spawn boss
+        const isLastWave = this.currentWave === this.stageData.totalWaves - 1;
+        const isFirstOfWave = this.enemiesSpawnedThisWave === 0;
+
+        if (isLastWave && isFirstOfWave) {
+            // Check if any configured enemy is a boss
+            // Note: enemyTypes contains IDs. We need to check if any of these IDs correspond to a boss.
+            const bossId = this.stageData.enemyTypes.find(id => {
+                const stats = getUnitById(id);
+                return stats && stats.isBoss;
+            });
+
+            if (bossId) {
+                enemyStats = getUnitById(bossId);
+                // Announce boss
+                this.floatingTexts.add(GAME_CONFIG.canvasWidth / 2, GAME_CONFIG.canvasHeight / 2, 'BOSS WARNING!', '#F43F5E', 40);
+                this.screenShake = 20; // Heavy shake
+                AudioManager.getInstance().playSe('spawn');
+            }
+        }
+
+        // Normal spawn if no boss decided
+        if (!enemyStats) {
+            enemyStats = selectRandomEnemy(this.stageData.enemyTypes);
+        }
+
         if (!enemyStats) return;
 
         const unit = new Unit(enemyStats, 'enemy', GAME_CONFIG.enemyBaseX - GAME_CONFIG.baseWidth - 10);

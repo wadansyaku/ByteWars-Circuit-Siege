@@ -24,6 +24,7 @@ export class Unit {
     public auraBuff?: number;
     public summonDuration?: number;
     public remainingLife?: number; // for summon units
+    public isBoss: boolean = false;
 
     // Combat state
     public attackCooldown: number = 0;
@@ -55,6 +56,10 @@ export class Unit {
             if (stats.summonDuration) {
                 this.remainingLife = stats.summonDuration;
             }
+        }
+
+        if (stats.isBoss) {
+            this.isBoss = true;
         }
     }
 

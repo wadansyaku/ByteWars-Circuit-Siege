@@ -188,16 +188,16 @@ export class CanvasRenderer {
 
     private drawUnit(unit: Unit): void {
         const { ctx } = this;
-        const { position, color, icon, hp, maxHp, faction, hitFlashTimer, range, isAttacking } = unit;
+        const { position, color, icon, hp, maxHp, faction, hitFlashTimer, range, isAttacking, isBoss } = unit;
 
-        const size = 30;
+        const size = isBoss ? 50 : 30; // Bosses are larger
         const x = position.x;
         const y = position.y;
 
-        // Glow effect for player units
-        if (faction === 'player') {
+        // Glow effect for player units and bosses
+        if (faction === 'player' || isBoss) {
             ctx.shadowColor = color;
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = isBoss ? 20 : 10;
         }
 
         // Hit flash

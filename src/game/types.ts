@@ -25,6 +25,7 @@ export interface UnitStats {
     aoeRadius?: number;
     auraBuff?: number; // attack speed multiplier for allies
     summonDuration?: number; // frames
+    isBoss?: boolean;
 }
 
 export interface EnemyStats {
@@ -39,6 +40,7 @@ export interface EnemyStats {
     color: string;
     icon: string;
     spawnWeight: number; // relative spawn frequency
+    isBoss?: boolean;
 }
 
 export interface StageData {
