@@ -54,6 +54,20 @@ export const ENEMIES: EnemyStats[] = [
         icon: '💨',
         spawnWeight: 1,
     },
+    {
+        id: 'cyber_overlord',
+        name: 'Cyber Overlord',
+        hp: 800,
+        maxHp: 800,
+        attack: 40,
+        attackSpeed: 2.0,
+        range: 20,
+        speed: 0.8,
+        color: '#F43F5E',
+        icon: '👹',
+        spawnWeight: 0, // Rare/Special
+        isBoss: true,
+    },
 ];
 
 export const getEnemyById = (id: string): EnemyStats | undefined => {
