@@ -129,9 +129,10 @@ function PlayPageContent() {
     const handleNextStage = useCallback(() => {
         const nextStage = getNextStage(stageId);
         if (nextStage) {
-            router.push(`/play?stage=${nextStage.id}`);
+            // Use window.location.href for full page reload to ensure game state is completely reset
+            window.location.href = `/play?stage=${nextStage.id}`;
         }
-    }, [stageId, router]);
+    }, [stageId]);
 
     // Menu handler
     const handleMenu = useCallback(() => {
