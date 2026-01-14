@@ -1,4 +1,5 @@
-import { EnemyStats } from '../types';
+import { EnemyStats, UnitStats } from '../types';
+import { getUnitById as getPlayerUnitById } from './units';
 
 // 4 Original Enemy Types
 export const ENEMIES: EnemyStats[] = [
@@ -72,6 +73,10 @@ export const ENEMIES: EnemyStats[] = [
 
 export const getEnemyById = (id: string): EnemyStats | undefined => {
     return ENEMIES.find((enemy) => enemy.id === id);
+};
+
+export const getAnyUnitById = (id: string): UnitStats | EnemyStats | undefined => {
+    return getPlayerUnitById(id) || getEnemyById(id);
 };
 
 export const selectRandomEnemy = (allowedIds: string[]): EnemyStats | undefined => {

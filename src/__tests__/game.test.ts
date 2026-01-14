@@ -133,8 +133,8 @@ describe('Data Integrity', () => {
         expect(PLAYER_UNITS.length).toBe(6);
     });
 
-    it('should have 4 enemy types', () => {
-        expect(ENEMIES.length).toBe(4);
+    it('should have 5 enemy types', () => {
+        expect(ENEMIES.length).toBe(5);
     });
 
     it('all units should have valid costs', () => {

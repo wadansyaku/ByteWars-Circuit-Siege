@@ -6,11 +6,15 @@ import { STAGES } from '@/game/data/stages';
 import { isStageUnlocked } from '@/utils/storage';
 import { getPlayStats } from '@/utils/analytics';
 import { ja } from '@/utils/i18n';
+import ShopModal from '@/components/ShopModal';
+import GachaModal from '@/components/GachaModal';
 
 export default function HomePage() {
   const [showStages, setShowStages] = useState(false);
   const [showHowTo, setShowHowTo] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showShop, setShowShop] = useState(false);
+  const [showGacha, setShowGacha] = useState(false);
 
   const stats = getPlayStats();
 
@@ -30,7 +34,7 @@ export default function HomePage() {
       </div>
 
       {/* Main menu */}
-      {!showStages && !showHowTo && !showStats && (
+      {!showStages && !showHowTo && !showStats && !showShop && (
         <div className="flex flex-col gap-4 w-full max-w-xs">
           <button
             onClick={() => setShowStages(true)}
@@ -51,6 +55,13 @@ export default function HomePage() {
             className="w-full py-3 px-8 bg-slate-800 hover:bg-slate-700 rounded-xl text-white font-bold text-lg shadow-lg transition-all hover:scale-105"
           >
             📊 {ja.stats}
+          </button>
+
+          <button
+            onClick={() => setShowShop(true)}
+            className="w-full py-3 px-8 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 rounded-xl text-white font-bold text-lg shadow-lg transition-all hover:scale-105"
+          >
+            🛒 ショップ
           </button>
 
           <div className="mt-4 text-center text-slate-500 text-sm">
@@ -228,6 +239,22 @@ export default function HomePage() {
       <div className="absolute bottom-4 text-center text-slate-600 text-sm">
         <p>{ja.copyright} | {ja.license}</p>
       </div>
+
+      {/* Shop Modal */}
+      <ShopModal
+        isOpen={showShop}
+        onClose={() => setShowShop(false)}
+        onOpenGacha={() => {
+          setShowShop(false);
+          setShowGacha(true);
+        }}
+      />
+
+      {/* Gacha Modal */}
+      <GachaModal
+        isOpen={showGacha}
+        onClose={() => setShowGacha(false)}
+      />
     </main>
   );
 }

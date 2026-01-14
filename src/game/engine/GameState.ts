@@ -2,7 +2,7 @@ import { Unit, Base } from '../entities/Entity';
 import { StageData, GameStateSnapshot } from '../types';
 import { GAME_CONFIG } from '../data/config';
 import { PLAYER_UNITS, getUnitById } from '../data/units';
-import { selectRandomEnemy } from '../data/enemies';
+import { selectRandomEnemy, getAnyUnitById } from '../data/enemies';
 import { ParticleSystem } from '../renderer/ParticleSystem';
 import { FloatingTextManager } from '../renderer/FloatingText';
 import { AudioManager } from '../audio/AudioManager';
@@ -146,12 +146,12 @@ export class GameState {
             // Check if any configured enemy is a boss
             // Note: enemyTypes contains IDs. We need to check if any of these IDs correspond to a boss.
             const bossId = this.stageData.enemyTypes.find(id => {
-                const stats = getUnitById(id);
+                const stats = getAnyUnitById(id);
                 return stats && stats.isBoss;
             });
 
             if (bossId) {
-                enemyStats = getUnitById(bossId);
+                enemyStats = getAnyUnitById(bossId);
                 // Announce boss
                 this.floatingTexts.add(GAME_CONFIG.canvasWidth / 2, GAME_CONFIG.canvasHeight / 2, 'BOSS WARNING!', '#F43F5E', 40);
                 this.screenShake = 20; // Heavy shake

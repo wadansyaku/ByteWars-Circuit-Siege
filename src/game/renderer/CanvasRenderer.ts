@@ -92,9 +92,17 @@ export class CanvasRenderer {
 
         // Parse gradient or use solid color
         if (gradient.startsWith('linear-gradient')) {
+            // Parse: "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)"
+            const colorMatch = gradient.match(/#[0-9a-fA-F]{6}/g);
             const grad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-            grad.addColorStop(0, '#1e293b');
-            grad.addColorStop(1, '#0f172a');
+            if (colorMatch && colorMatch.length >= 2) {
+                grad.addColorStop(0, colorMatch[0]);
+                grad.addColorStop(1, colorMatch[1]);
+            } else {
+                // Fallback
+                grad.addColorStop(0, '#1e293b');
+                grad.addColorStop(1, '#0f172a');
+            }
             ctx.fillStyle = grad;
         } else {
             ctx.fillStyle = gradient;
